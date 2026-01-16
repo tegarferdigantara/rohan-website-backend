@@ -146,14 +146,14 @@ class RohanAuthController extends Controller
                 DECLARE @p_id VARCHAR(50) = ?
                 DECLARE @p_pw VARCHAR(50) = ?
                 DECLARE @p_nation VARCHAR(10) = ?
-                DECLARE @p_ver VARCHAR(20) = ?
+                DECLARE @p_ver VARCHAR(30) = ?
                 DECLARE @p_test TINYINT = ?
                 DECLARE @p_ip VARCHAR(20) = ?
-                DECLARE @p_code TINYINT = ?
+                DECLARE @p_code INT = ?
                 
                 DECLARE @user_id INT = -1
-                DECLARE @sess_id VARCHAR(36) = SPACE(36)
-                DECLARE @run_ver VARCHAR(20) = SPACE(20)
+                DECLARE @sess_id CHAR(36) = SPACE(36)
+                DECLARE @run_ver VARCHAR(30) = SPACE(30)
                 DECLARE @bill_no INT = 0
                 DECLARE @grade TINYINT = 0
                 DECLARE @ret INT = 0
