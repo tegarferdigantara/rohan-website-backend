@@ -154,9 +154,9 @@ class RohanAuthController extends Controller
                 DECLARE @user_id INT = -1
                 DECLARE @sess_id VARCHAR(36) = SPACE(36)
                 DECLARE @run_ver VARCHAR(20) = SPACE(20)
-                DECLARE @bill_no INT = -1
-                DECLARE @grade INT = -1
-                DECLARE @ret INT = -1
+                DECLARE @bill_no INT = 0
+                DECLARE @grade TINYINT = 0
+                DECLARE @ret TINYINT = 0
 
                 EXEC [dbo].[ROHAN4_Login] 
                     @p_id, @p_pw, @p_nation, @p_ver, @p_test, @p_ip, @p_code,
