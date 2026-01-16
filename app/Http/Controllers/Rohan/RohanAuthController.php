@@ -136,9 +136,21 @@ class RohanAuthController extends Controller
                 'params' => ['id' => $id, 'nation' => $nation, 'ver' => $ver],
             ]);
 
-            // Call stored procedure using positional parameters (like original PHP)
-            // The stored procedure expects: id, pw, nation, ver, test, ip, code + OUTPUT params
+            // Escape and prepare values
+            $pwHash = md5($pw);
+            $testVal = (int)$test;
+            $codeVal = (int)$code;
+
+            // Call stored procedure - bind each parameter explicitly
             $result = $conn->select("
+                DECLARE @p_id VARCHAR(50) = ?
+                DECLARE @p_pw VARCHAR(50) = ?
+                DECLARE @p_nation VARCHAR(10) = ?
+                DECLARE @p_ver VARCHAR(20) = ?
+                DECLARE @p_test INT = ?
+                DECLARE @p_ip VARCHAR(20) = ?
+                DECLARE @p_code INT = ?
+                
                 DECLARE @user_id INT = -1
                 DECLARE @sess_id VARCHAR(36) = SPACE(36)
                 DECLARE @run_ver VARCHAR(20) = SPACE(20)
@@ -147,7 +159,7 @@ class RohanAuthController extends Controller
                 DECLARE @ret INT = -1
 
                 EXEC [dbo].[ROHAN4_Login] 
-                    ?, ?, ?, ?, ?, ?, ?,
+                    @p_id, @p_pw, @p_nation, @p_ver, @p_test, @p_ip, @p_code,
                     @user_id OUTPUT,
                     @sess_id OUTPUT,
                     @run_ver OUTPUT,
@@ -157,7 +169,7 @@ class RohanAuthController extends Controller
 
                 SELECT @user_id as user_id, @sess_id as sess_id, @run_ver as run_ver, 
                        @bill_no as bill_no, @grade as grade, @ret as ret
-            ", [$id, md5($pw), $nation, $ver, $test, $ip, $code]);
+            ", [$id, $pwHash, $nation, $ver, $testVal, $ip, $codeVal]);
 
             if (empty($result)) {
                 $this->logResponse($endpoint, $requestId, '-1', $startTime);
