@@ -200,7 +200,10 @@ class RohanAuthController extends Controller
                     return response('-1');
                 }
 
-                // Insert into TLobby
+                // Upsert into TLobby (delete existing first, then insert)
+                $conn->statement("
+                    DELETE FROM [RohanUser].[dbo].[TLobby] WHERE user_id = ?
+                ", [$userId]);
                 $conn->insert("
                     INSERT INTO [RohanUser].[dbo].[TLobby] (user_id, server_id, char_id) 
                     VALUES (?, 0, 0)
