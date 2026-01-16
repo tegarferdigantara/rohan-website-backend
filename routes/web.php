@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\RohanAuthController;
+use App\Http\Controllers\Rohan\RohanAuthController;
 
 /*
 |--------------------------------------------------------------------------
