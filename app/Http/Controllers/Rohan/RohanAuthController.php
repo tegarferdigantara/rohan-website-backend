@@ -136,7 +136,8 @@ class RohanAuthController extends Controller
                 'params' => ['id' => $id, 'nation' => $nation, 'ver' => $ver],
             ]);
 
-            // Call stored procedure
+            // Call stored procedure using positional parameters (like original PHP)
+            // The stored procedure expects: id, pw, nation, ver, test, ip, code + OUTPUT params
             $result = $conn->select("
                 DECLARE @user_id INT = -1
                 DECLARE @sess_id VARCHAR(36) = SPACE(36)
@@ -146,19 +147,13 @@ class RohanAuthController extends Controller
                 DECLARE @ret INT = -1
 
                 EXEC [dbo].[ROHAN4_Login] 
-                    @login_id = ?,
-                    @login_pw = ?,
-                    @nation = ?,
-                    @ver = ?,
-                    @test = ?,
-                    @ip = ?,
-                    @code = ?,
-                    @user_id = @user_id OUTPUT,
-                    @sess_id = @sess_id OUTPUT,
-                    @run_ver = @run_ver OUTPUT,
-                    @bill_no = @bill_no OUTPUT,
-                    @grade = @grade OUTPUT,
-                    @ret = @ret OUTPUT
+                    ?, ?, ?, ?, ?, ?, ?,
+                    @user_id OUTPUT,
+                    @sess_id OUTPUT,
+                    @run_ver OUTPUT,
+                    @bill_no OUTPUT,
+                    @grade OUTPUT,
+                    @ret OUTPUT
 
                 SELECT @user_id as user_id, @sess_id as sess_id, @run_ver as run_ver, 
                        @bill_no as bill_no, @grade as grade, @ret as ret
