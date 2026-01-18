@@ -75,6 +75,29 @@ class RohanAuthController extends Controller
     /**
      * Login - Call stored procedure ROHAN4_Login
      * Endpoints: Login3.php, Login3a.php, Login7.php, Login3.asp
+     * - Response ret:
+     * -1: Your account is not registered
+     * -2: Invalid Password
+     * -3: Invalid Account
+     * -4: You cannot login from your current IP Address. Please visit our homepage and contact us via email if you have any questions.
+     * -5: Your account is under restriction and is unavailable for use. For details, please visit our homepage.
+     * -6: You do not meet the age requirement.
+     * -7: Please reset your password first before logging in.
+     * -8: After 180 days of inactivity, the account will be cancelled.
+     * -9: 8000002
+     * -10: You're already logged in.
+     * -11: This is your private CB Tester account. Thanks for registering!
+     * -12: You're already logged in.
+     * -13: You're already logged in.
+     * -14: E_ALREADY_LOGINED
+     * -15: The account is inactive. Go to Rohan home page and access [Inactive Cancellation] to use the account for the game.
+     * -16: If you continously try to connect during connection waiting time, connection may be blocked. 
+     * -17: For safe data flow, about 3 minutes is given.
+     * -18: Login Failed.
+     * -19: Login Failed.
+     * -20: Login Failed.
+     * -1000: Server Maintenance in progress
+     * 
      */
     public function login(Request $request)
     {
