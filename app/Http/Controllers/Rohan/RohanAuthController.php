@@ -96,6 +96,19 @@ class RohanAuthController extends Controller
      * -18: Login Failed.
      * -19: Login Failed.
      * -20: Login Failed.
+     * -21: Your account is not registered.
+     * -22: Invalid Password.
+     * -23: You are already logged in. Do you wish to disconnect? (Takes up to 2 minutes to disconnect.)
+     * -30: Invalid Version.
+     * -31: Data patch in progress.
+     * -32: Invalid version.
+     * -33: 20046.
+     * -40: Login attempts exceded. Please login through the Rohan homepage.
+     * -50: Verification code has not been sent.
+     * -51: Time expired for entering your verification code.
+     * -52: Invalid Authentication Code.
+     * -60: 8000003
+     * -61: Invalid Authentication Code.
      * -1000: Server Maintenance in progress
      * 
      */
