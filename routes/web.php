@@ -25,24 +25,12 @@ Route::get('/', function () {
 | Format: /RohanAuth/Login3.asp?nation=TN&id=xxx&passwd=xxx&...
 */
 Route::prefix('RohanAuth')->withoutMiddleware(['web'])->group(function () {
-    
-    // ASP endpoints (PascalCase)
+    // ASP RohanAuth endpoints
     Route::match(['get', 'post'], '/Login3.asp', [RohanAuthController::class, 'login']);
-    // Route::match(['get', 'post'], '/LoginRemove.asp', [RohanAuthController::class, 'loginRemove']);
-    // Route::match(['get', 'post'], '/LoginRemoveUS.asp', [RohanAuthController::class, 'loginRemove']);
-    // Route::match(['get', 'post'], '/SendCode3.asp', [RohanAuthController::class, 'sendCode']);
-    // Route::match(['get', 'post'], '/SendCode7.asp', [RohanAuthController::class, 'sendCode']);
     Route::match(['get', 'post'], '/ServerList5.asp', [RohanAuthController::class, 'serverList']);
-    Route::match(['get', 'post'], '/DownFlag2.asp', [RohanAuthController::class, 'downFlag']);
-    
-    
-    // Lowercase ASP endpoints
-    // Route::match(['get', 'post'], '/login3.asp', [RohanAuthController::class, 'login']);
     Route::match(['get', 'post'], '/loginremove.asp', [RohanAuthController::class, 'loginRemove']);
-    // Route::match(['get', 'post'], '/loginremoveus.asp', [RohanAuthController::class, 'loginRemove']);
-    // Route::match(['get', 'post'], '/sendcode3.asp', [RohanAuthController::class, 'sendCode']);
     Route::match(['get', 'post'], '/sendcode7.asp', [RohanAuthController::class, 'sendCode']);
-    // Route::match(['get', 'post'], '/serverlist5.asp', [RohanAuthController::class, 'serverList']);
+    Route::match(['get', 'post'], '/DownFlag2.asp', [RohanAuthController::class, 'downFlag']);    
     Route::match(['get', 'post'], '/downflag2.asp', [RohanAuthController::class, 'downFlag']);
 });
 

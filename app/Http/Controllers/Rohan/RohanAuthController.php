@@ -4,77 +4,36 @@ namespace App\Http\Controllers\Rohan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Launcher\ServerSetting;
+use App\Utils\RohanLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class RohanAuthController extends Controller
 {
-    /**
-     * Generate unique request ID for logging
-     */
-    private function getRequestId(): string
-    {
-        return substr(md5(uniqid(mt_rand(), true)), 0, 8);
-    }
-
-    /**
-     * Log Rohan auth request
-     */
-    private function logRequest(string $endpoint, Request $request, string $requestId): void
-    {
-        $data = [
-            'request_id' => $requestId,
-            'endpoint' => $endpoint,
-            'ip' => $this->getClientIP($request),
-            'method' => $request->method(),
-            'user_agent' => $request->header('User-Agent'),
-            'params' => array_merge(
-                $request->query(),
-                collect($request->post())->except('passwd')->toArray()
-            ),
-        ];
-
-        Log::channel('rohan')->info("[$requestId] Request: $endpoint", $data);
-    }
-
-    /**
-     * Log Rohan auth response
-     */
-    private function logResponse(string $endpoint, string $requestId, $response, float $startTime): void
-    {
-        $elapsed = round((microtime(true) - $startTime) * 1000, 2);
-        
-        Log::channel('rohan')->info("[$requestId] Response: $endpoint", [
-            'request_id' => $requestId,
-            'endpoint' => $endpoint,
-            'response' => is_string($response) ? $response : json_encode($response),
-            'elapsed_ms' => $elapsed,
-        ]);
-    }
-
-    /**
-     * Log error
-     */
-    private function logError(string $endpoint, string $requestId, \Exception $e): void
-    {
-        Log::channel('rohan')->error("[$requestId] Error: $endpoint", [
-            'request_id' => $requestId,
-            'endpoint' => $endpoint,
-            'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        ]);
-    }
-
     private function getConnection()
     {
         return DB::connection('sqlsrv');
     }
 
     /**
+     * Get Client IP Address
+     */
+    private function getClientIP(Request $request): string
+    {
+        if ($request->header('X-Forwarded-For')) {
+            $ip = explode(',', $request->header('X-Forwarded-For'))[0];
+        } elseif ($request->header('X-Real-IP')) {
+            $ip = $request->header('X-Real-IP');
+        } else {
+            $ip = $request->ip();
+        }
+
+        return trim($ip);
+    }
+
+    /**
      * Login - Call stored procedure ROHAN4_Login
-     * Endpoints: Login3.php, Login3a.php, Login7.php, Login3.asp
+     * Endpoints: Login3.asp
      * - Response ret:
      * -1: Your account is not registered
      * -2: Invalid Password
@@ -109,16 +68,16 @@ class RohanAuthController extends Controller
      * -52: Invalid Authentication Code.
      * -60: 8000003
      * -61: Invalid Authentication Code.
-     * -1000: Server Maintenance in progress
-     * 
+     * -1000: Server Maintenance in progress.
      */
     public function login(Request $request)
     {
         $startTime = microtime(true);
-        $requestId = $this->getRequestId();
+        $requestId = RohanLogger::generateRequestId();
         $endpoint = 'Login';
+        $ip = $this->getClientIP($request);
         
-        $this->logRequest($endpoint, $request, $requestId);
+        RohanLogger::logRequest($endpoint, $request, $requestId, $ip);
 
         $id = $request->input('id');
         $pw = $request->input('passwd');
@@ -127,10 +86,9 @@ class RohanAuthController extends Controller
         $code = $request->input('code');
         $pcode = $request->input('pcode');
         $nation = $request->input('nation');
-        $ip = $this->getClientIP($request);
 
         // Log parsed parameters
-        Log::channel('rohan')->debug("[$requestId] Parameters", [
+        RohanLogger::logDebug($requestId, 'Parameters', [
             'id' => $id,
             'ver' => $ver,
             'test' => $test,
@@ -142,15 +100,15 @@ class RohanAuthController extends Controller
 
         // Validation
         if (empty($id)) {
-            $this->logResponse($endpoint, $requestId, '-1|-2|-1', $startTime);
+            RohanLogger::logResponse($endpoint, $requestId, '-1|-2|-1', $startTime);
             return response('-1|-2|-1');
         }
         if (empty($nation)) {
-            $this->logResponse($endpoint, $requestId, '-1|-3|-1', $startTime);
+            RohanLogger::logResponse($endpoint, $requestId, '-1|-3|-1', $startTime);
             return response('-1|-3|-1');
         }
         if (empty($pcode)) {
-            $this->logResponse($endpoint, $requestId, '-1|-5|-1', $startTime);
+            RohanLogger::logResponse($endpoint, $requestId, '-1|-5|-1', $startTime);
             return response('-1|-5|-1');
         }
 
@@ -160,14 +118,14 @@ class RohanAuthController extends Controller
             $maintenance = ServerSetting::getValue('maintenance_mode', '0') === '1';
         } catch (\Exception $e) {
             // Ignore if table doesn't exist
-            Log::channel('rohan')->warning("[$requestId] ServerSetting table not available");
+            RohanLogger::logWarning($requestId, 'ServerSetting table not available');
         }
 
         try {
             $conn = $this->getConnection();
 
             // Log SQL query
-            Log::channel('rohan')->debug("[$requestId] SQL Query", [
+            RohanLogger::logDebug($requestId, 'SQL Query', [
                 'procedure' => 'ROHAN4_Login',
                 'params' => ['id' => $id, 'nation' => $nation, 'ver' => $ver],
             ]);
@@ -208,7 +166,7 @@ class RohanAuthController extends Controller
             ", [$id, $pwHash, $nation, $ver, $testVal, $ip, $codeVal]);
 
             if (empty($result)) {
-                $this->logResponse($endpoint, $requestId, '-1', $startTime);
+                RohanLogger::logResponse($endpoint, $requestId, '-1', $startTime);
                 return response('-1');
             }
 
@@ -220,7 +178,7 @@ class RohanAuthController extends Controller
             $grade = $row->grade ?? -1;
 
             // Log SQL result
-            Log::channel('rohan')->debug("[$requestId] SQL Result", [
+            RohanLogger::logDebug($requestId, 'SQL Result', [
                 'user_id' => $userId,
                 'sess_id' => $sessId,
                 'run_ver' => $runVer,
@@ -231,8 +189,8 @@ class RohanAuthController extends Controller
             if ($ret == 0) {
                 // Maintenance check
                 if ($maintenance && $grade != 250 && $id != 'demons') {
-                    Log::channel('rohan')->warning("[$requestId] Login blocked - maintenance mode", ['id' => $id]);
-                    $this->logResponse($endpoint, $requestId, '-1000', $startTime);
+                    RohanLogger::logWarning($requestId, 'Login blocked - maintenance mode', ['id' => $id]);
+                    RohanLogger::logResponse($endpoint, $requestId, '-1000', $startTime);
                     return response('-1000');
                 }
 
@@ -247,61 +205,62 @@ class RohanAuthController extends Controller
 
                 $data = implode('|', [$sessId, $userId, $runVer, $grade, 0]);
                 
-                Log::channel('rohan')->info("[$requestId] Login SUCCESS", [
+                RohanLogger::logInfo($requestId, 'Login SUCCESS', [
                     'user_id' => $userId,
                     'grade' => $grade,
                     'id' => $id,
                 ]);
                 
-                $this->logResponse($endpoint, $requestId, $data, $startTime);
+                RohanLogger::logResponse($endpoint, $requestId, $data, $startTime);
                 return response($data);
             }
 
-            Log::channel('rohan')->warning("[$requestId] Login FAILED", [
+            RohanLogger::logWarning($requestId, 'Login FAILED', [
                 'ret' => $ret,
                 'id' => $id,
             ]);
             
-            $this->logResponse($endpoint, $requestId, $ret, $startTime);
+            RohanLogger::logResponse($endpoint, $requestId, $ret, $startTime);
             return response($ret);
 
         } catch (\Exception $e) {
-            $this->logError($endpoint, $requestId, $e);
+            RohanLogger::logError($endpoint, $requestId, $e);
             return response('-1000');
         }
     }
 
     /**
      * Login Remove / Disconnect
-     * Endpoint: LoginRemove.php, LoginRemove.asp
+     * Endpoint: LoginRemove.asp
      */
     public function loginRemove(Request $request)
     {
         $startTime = microtime(true);
-        $requestId = $this->getRequestId();
+        $requestId = RohanLogger::generateRequestId();
         $endpoint = 'LoginRemove';
+        $ip = $this->getClientIP($request);
         
-        $this->logRequest($endpoint, $request, $requestId);
+        RohanLogger::logRequest($endpoint, $request, $requestId, $ip);
 
         $id = $request->input('id');
         $passwd = $request->input('passwd');
 
         // Validate ID format
         if (!preg_match('/^[a-z_0-9]+$/i', $id)) {
-            Log::channel('rohan')->warning("[$requestId] Invalid ID format", ['id' => $id]);
-            $this->logResponse($endpoint, $requestId, 'ERROR', $startTime);
+            RohanLogger::logWarning($requestId, 'Invalid ID format', ['id' => $id]);
+            RohanLogger::logResponse($endpoint, $requestId, 'ERROR', $startTime);
             return response('ERROR');
         }
 
         if (empty($id)) {
-            $this->logResponse($endpoint, $requestId, -99, $startTime);
+            RohanLogger::logResponse($endpoint, $requestId, -99, $startTime);
             return response(-99);
         }
 
         try {
             $conn = $this->getConnection();
 
-            Log::channel('rohan')->debug("[$requestId] LoginRemove executing", ['id' => $id]);
+            RohanLogger::logDebug($requestId, 'LoginRemove executing', ['id' => $id]);
 
             $conn->statement("
                 DECLARE @user_id INT
@@ -324,41 +283,41 @@ class RohanAuthController extends Controller
                 VALUES (@char_id, @user_id, @server_id)
             ", [$id, md5($passwd)]);
 
-            Log::channel('rohan')->info("[$requestId] LoginRemove SUCCESS", ['id' => $id]);
-            $this->logResponse($endpoint, $requestId, 'OK', $startTime);
+            RohanLogger::logInfo($requestId, 'LoginRemove SUCCESS', ['id' => $id]);
+            RohanLogger::logResponse($endpoint, $requestId, 'OK', $startTime);
             return response('OK');
 
         } catch (\Exception $e) {
-            $this->logError($endpoint, $requestId, $e);
+            RohanLogger::logError($endpoint, $requestId, $e);
             return response('ERROR');
         }
     }
 
     /**
      * Send Code - Call stored procedure ROHAN3_SendCode
-     * Endpoints: SendCode3.php, SendCode7.php
+     * Endpoints: SendCode7.asp
      */
     public function sendCode(Request $request)
     {
         $startTime = microtime(true);
-        $requestId = $this->getRequestId();
+        $requestId = RohanLogger::generateRequestId();
         $endpoint = 'SendCode';
+        $ip = $this->getClientIP($request);
         
-        $this->logRequest($endpoint, $request, $requestId);
+        RohanLogger::logRequest($endpoint, $request, $requestId, $ip);
 
         $id = $request->input('id');
         $pw = $request->input('passwd');
-        $ip = $this->getClientIP($request);
 
         if (empty($id)) {
-            $this->logResponse($endpoint, $requestId, -99, $startTime);
+            RohanLogger::logResponse($endpoint, $requestId, -99, $startTime);
             return response(-99);
         }
 
         try {
             $conn = $this->getConnection();
 
-            Log::channel('rohan')->debug("[$requestId] SendCode executing", ['id' => $id, 'ip' => $ip]);
+            RohanLogger::logDebug($requestId, 'SendCode executing', ['id' => $id, 'ip' => $ip]);
 
             $result = $conn->select("
                 DECLARE @ret INT = -1
@@ -373,27 +332,28 @@ class RohanAuthController extends Controller
             ", [$id, md5($pw), $ip]);
 
             // Original code always returns -202
-            Log::channel('rohan')->info("[$requestId] SendCode complete", ['id' => $id]);
-            $this->logResponse($endpoint, $requestId, -202, $startTime);
+            RohanLogger::logInfo($requestId, 'SendCode complete', ['id' => $id]);
+            RohanLogger::logResponse($endpoint, $requestId, -202, $startTime);
             return response(-202);
 
         } catch (\Exception $e) {
-            $this->logError($endpoint, $requestId, $e);
+            RohanLogger::logError($endpoint, $requestId, $e);
             return response(-1);
         }
     }
 
     /**
      * Server List
-     * Endpoint: ServerList5.php, ServerList5.asp
+     * Endpoint: ServerList5.asp
      */
     public function serverList(Request $request)
     {
         $startTime = microtime(true);
-        $requestId = $this->getRequestId();
+        $requestId = RohanLogger::generateRequestId();
         $endpoint = 'ServerList';
+        $ip = $this->getClientIP($request);
         
-        $this->logRequest($endpoint, $request, $requestId);
+        RohanLogger::logRequest($endpoint, $request, $requestId, $ip);
 
         // Get from database or use default
         $serverList = 'Testing|127.0.0.1|22100|3|3|1|0|0|0|Lorem Ipsum|';
@@ -405,25 +365,26 @@ class RohanAuthController extends Controller
             );
         } catch (\Exception $e) {
             // Use default if table doesn't exist
-            Log::channel('rohan')->warning("[$requestId] ServerSetting table not available, using default");
+            RohanLogger::logWarning($requestId, 'ServerSetting table not available, using default');
         }
 
-        Log::channel('rohan')->info("[$requestId] ServerList requested");
-        $this->logResponse($endpoint, $requestId, $serverList, $startTime);
+        RohanLogger::logInfo($requestId, 'ServerList requested');
+        RohanLogger::logResponse($endpoint, $requestId, $serverList, $startTime);
         return response($serverList);
     }
 
     /**
      * Down Flag
-     * Endpoint: DownFlag2.php, DownFlag2.asp
+     * Endpoint: DownFlag2.asp
      */
     public function downFlag(Request $request)
     {
         $startTime = microtime(true);
-        $requestId = $this->getRequestId();
+        $requestId = RohanLogger::generateRequestId();
         $endpoint = 'DownFlag';
+        $ip = $this->getClientIP($request);
         
-        $this->logRequest($endpoint, $request, $requestId);
+        RohanLogger::logRequest($endpoint, $request, $requestId, $ip);
 
         $downFlag = 'ROHAN|1|1|ROHAN|DEFAULT';
         
@@ -433,23 +394,7 @@ class RohanAuthController extends Controller
             // Use default if table doesn't exist
         }
 
-        $this->logResponse($endpoint, $requestId, $downFlag, $startTime);
+        RohanLogger::logResponse($endpoint, $requestId, $downFlag, $startTime);
         return response($downFlag);
-    }
-
-    /**
-     * Get Client IP Address
-     */
-    private function getClientIP(Request $request): string
-    {
-        if ($request->header('X-Forwarded-For')) {
-            $ip = explode(',', $request->header('X-Forwarded-For'))[0];
-        } elseif ($request->header('X-Real-IP')) {
-            $ip = $request->header('X-Real-IP');
-        } else {
-            $ip = $request->ip();
-        }
-
-        return trim($ip);
     }
 }
