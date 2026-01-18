@@ -219,8 +219,8 @@ class RohanAuthController extends Controller
                 // Maintenance check
                 if ($maintenance && $grade != 250 && $id != 'demons') {
                     Log::channel('rohan')->warning("[$requestId] Login blocked - maintenance mode", ['id' => $id]);
-                    $this->logResponse($endpoint, $requestId, '-1', $startTime);
-                    return response('-1');
+                    $this->logResponse($endpoint, $requestId, '-1000', $startTime);
+                    return response('-1000');
                 }
 
                 // Upsert into TLobby (delete existing first, then insert)
