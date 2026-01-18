@@ -383,12 +383,12 @@ class RohanAuthController extends Controller
         $this->logRequest($endpoint, $request, $requestId);
 
         // Get from database or use default
-        $serverList = 'Odin (MAINTENANCE)|129.212.226.244|22100|3|3|1|0|0|0|International Server|';
+        $serverList = 'Testing|127.0.0.1|22100|3|3|1|0|0|0|Lorem Ipsum|';
         
         try {
             $serverList = ServerSetting::getValue(
                 'server_list',
-                'Odin (MAINTENANCE)|129.212.226.244|22100|3|3|1|0|0|0|International Server|'
+                'Testing|127.0.0.1|22100|3|3|1|0|0|0|Lorem Ipsum|'
             );
         } catch (\Exception $e) {
             // Use default if table doesn't exist
