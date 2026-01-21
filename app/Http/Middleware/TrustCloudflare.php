@@ -49,9 +49,8 @@ class TrustCloudflare
         // Normalize host header if needed
         // Some backends check HTTP_HOST for routing
         if ($request->getHost() === 'emulsis-realm.my.id') {
-            // Optionally rewrite to auth subdomain
-            // Uncomment if needed:
-            // $request->headers->set('Host', 'auth.emulsis-realm.my.id');
+            // Rewrite to auth subdomain to match backend expectation
+            $request->headers->set('Host', 'auth.emulsis-realm.my.id');
         }
         
         return $next($request);
