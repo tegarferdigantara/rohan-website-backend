@@ -65,5 +65,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
         'launcher.api' => \App\Http\Middleware\VerifyLauncherApiKey::class,
+        'cf.debug' => \App\Http\Middleware\CloudflareDebugger::class,
     ];
 }

@@ -24,7 +24,7 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 | Format: /RohanAuth/Login3.asp?nation=TN&id=xxx&passwd=xxx&...
 */
-Route::prefix('RohanAuth')->withoutMiddleware(['web'])->group(function () {
+Route::prefix('RohanAuth')->withoutMiddleware(['web'])->middleware(['cf.debug'])->group(function () {
     // ASP RohanAuth endpoints
     Route::match(['get', 'post'], '/Login3.asp', [RohanAuthController::class, 'login']);
     Route::match(['get', 'post'], '/ServerList5.asp', [RohanAuthController::class, 'serverList']);

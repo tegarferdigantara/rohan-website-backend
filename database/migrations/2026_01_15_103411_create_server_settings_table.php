@@ -24,7 +24,7 @@ return new class extends Migration
             ['key' => 'session_timeout_seconds', 'value' => '60'],
             ['key' => 'maintenance_mode', 'value' => '0'],
             ['key' => 'launcher_secret', 'value' => 'o6LDOB3E2Nv4mYPM'],
-            ['key' => 'server_list', 'value' => sprintf('%s|%s|%s|3|3|1|0|0|0|%s|', env('SERVER_NAME'), env('SERVER_IP'), env('SERVER_PORT'), env('SERVER_DESCRIPTION'))],
+            ['key' => 'server_list', 'value' => sprintf('%s|%s|%s|3|3|1|0|0|0|%s|', env('GAME_SERVER_NAME'), env('GAME_SERVER_IP'), env('GAME_SERVER_PORT'), env('GAME_SERVER_DESCRIPTION'))],
             ['key' => 'down_flag', 'value' => 'ROHAN|1|1|ROHAN|DEFAULT'],
         ],['key'], ['value']);
     }
