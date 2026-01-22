@@ -215,6 +215,16 @@ class RohanAuthController extends Controller
                 }
 
                 RohanLogger::logInfo($requestId, 'Login Success', ['user_id' => $userId, 'grade' => $grade]);
+                
+                // Whitelist IP for game server access (port 22100)
+                try {
+                    $firewall = new \App\Services\GameServerFirewall();
+                    $firewall->allowIP($ip, $userId, 7200); // 2 hours
+                    RohanLogger::logInfo($requestId, 'IP whitelisted for game server', ['ip' => $ip]);
+                } catch (\Exception $e) {
+                    RohanLogger::logWarning($requestId, 'Failed to whitelist IP: ' . $e->getMessage());
+                }
+                
                 RohanLogger::logResponse($endpoint, $requestId, $data, $startTime);
                 return response($data);
             } else {
@@ -263,6 +273,15 @@ class RohanAuthController extends Controller
                 'user_id' => $userId,
                 'affected_rows' => $affected
             ]);
+
+            // Remove IP from game server whitelist
+            try {
+                $firewall = new \App\Services\GameServerFirewall();
+                $firewall->removeIP($ip);
+                RohanLogger::logInfo($requestId, 'IP removed from whitelist', ['ip' => $ip]);
+            } catch (\Exception $e) {
+                RohanLogger::logWarning($requestId, 'Failed to remove IP: ' . $e->getMessage());
+            }
 
             RohanLogger::logResponse($endpoint, $requestId, '1', $startTime);
             return response('1');
