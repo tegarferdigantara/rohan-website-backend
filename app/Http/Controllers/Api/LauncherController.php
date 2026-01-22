@@ -17,7 +17,11 @@ class LauncherController extends Controller
 
     public function __construct()
     {
-        $this->cleanupExpiredSessions();
+        try {
+            $this->cleanupExpiredSessions();
+        } catch (\Exception $e) {
+            \Log::warning('LauncherController: Failed to cleanup expired sessions - ' . $e->getMessage());
+        }
     }
 
     /**
