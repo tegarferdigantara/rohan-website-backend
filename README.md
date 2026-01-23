@@ -150,8 +150,6 @@ emulsis-web/
 │   │   │   ├── IpRule.php                    # Model IP whitelist/blacklist
 │   │   │   └── ServerSetting.php             # Model pengaturan server
 │   │   └── User.php
-│   ├── Services/
-│   │   └── GameServerFirewall.php            # Service firewall game server
 │   └── Utils/
 │       └── RohanLogger.php                   # Utility logging
 ├── config/                                    # Konfigurasi Laravel
@@ -161,6 +159,10 @@ emulsis-web/
 │   ├── api.php                               # Route API (Launcher)
 │   ├── auth.php                              # Route autentikasi
 │   └── web.php                               # Route web (RohanAuth legacy)
+├── scripts/
+│   └── windows/
+│       ├── firewall_sync.ps1                 # Firewall sync (Windows)
+│       └── install_firewall_sync.ps1         # Installer
 ├── ssl/                                       # SSL certificates
 ├── storage/
 │   └── logs/                                 # Log files
@@ -387,10 +389,12 @@ Lihat dokumentasi tambahan:
 
 | File | Deskripsi |
 |------|-----------|
+| [AISERVER_SPLIT_PLAN.md](./AISERVER_SPLIT_PLAN.md) | Rencana split AIServer ke server terpisah |
 | [CLOUDFLARE_IMPLEMENTATION.md](./CLOUDFLARE_IMPLEMENTATION.md) | Panduan integrasi Cloudflare |
 | [CLOUDFLARE_DEBUG_GUIDE.md](./CLOUDFLARE_DEBUG_GUIDE.md) | Debug masalah Cloudflare |
 | [CLOUDFLARE_TROUBLESHOOTING.md](./CLOUDFLARE_TROUBLESHOOTING.md) | Troubleshooting Cloudflare |
 | [GAME_SERVER_PROTECTION.md](./GAME_SERVER_PROTECTION.md) | Proteksi game server dari DDoS |
+| [IP_WHITELIST_SETUP.md](./IP_WHITELIST_SETUP.md) | Setup IP Whitelist (Linux + Windows) |
 | [LOGOUT_DETECTION.md](./LOGOUT_DETECTION.md) | Deteksi logout player |
 | [SCHEDULER_SETUP.md](./SCHEDULER_SETUP.md) | Setup scheduler Windows/Linux |
 
