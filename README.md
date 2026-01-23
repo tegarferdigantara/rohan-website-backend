@@ -1,66 +1,437 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Emulsis Web - Rohan Authentication Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Backend API Laravel untuk sistem autentikasi **Rohan Online Private Server**, yang melayani RohanClient.exe dan Rohan Launcher.
 
-## About Laravel
+## 📋 Daftar Isi
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- [Teknologi](#-teknologi)
+- [Persyaratan Sistem](#-persyaratan-sistem)
+- [Instalasi](#-instalasi)
+- [Konfigurasi](#-konfigurasi)
+- [Struktur Proyek](#-struktur-proyek)
+- [API Endpoints](#-api-endpoints)
+- [Fitur Utama](#-fitur-utama)
+- [Scheduler & Commands](#-scheduler--commands)
+- [Deployment](#-deployment)
+- [Dokumentasi Tambahan](#-dokumentasi-tambahan)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🛠 Teknologi
 
-## Learning Laravel
+| Teknologi | Versi |
+|-----------|-------|
+| PHP | ^8.1 |
+| Laravel | ^10.10 |
+| Laravel Sanctum | ^3.3 |
+| Laravel Breeze | ^1.29 |
+| SQL Server | 2019+ |
+| GuzzleHTTP | ^7.2 |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 📦 Persyaratan Sistem
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **PHP 8.1+** dengan ekstensi berikut:
+  - `sqlsrv` (SQL Server driver)
+  - `pdo_sqlsrv`
+  - `openssl`
+  - `mbstring`
+  - `json`
+- **Composer** untuk dependency management
+- **SQL Server** dengan database Rohan:
+  - `RohanUser` - Data akun pengguna
+  - `RohanGame` - Data game
+  - `RohanMall` - Data item mall
+  - `RohanManage` - Data manajemen
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🚀 Instalasi
 
-### Premium Partners
+### 1. Clone Repository
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```bash
+git clone <repository-url>
+cd emulsis-web
+```
 
-## Contributing
+### 2. Install Dependencies
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+composer install
+```
 
-## Code of Conduct
+### 3. Setup Environment
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+# Copy example environment
+cp .env.example .env
 
-## Security Vulnerabilities
+# Generate application key
+php artisan key:generate
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 4. Konfigurasi Database
 
-## License
+Edit file `.env` dan sesuaikan konfigurasi database:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```env
+DB_CONNECTION=sqlsrv
+DB_HOST='127.0.0.1'
+DB_PORT=1433
+DB_USERNAME=sa
+DB_PASSWORD='your_password'
+
+DB_DATABASE_USER=RohanUser
+DB_DATABASE_GAME=RohanGame
+DB_DATABASE_MALL=RohanMall
+DB_DATABASE_MANAGE=RohanManage
+```
+
+### 5. Jalankan Migrasi
+
+```bash
+php artisan migrate
+```
+
+### 6. Generate API Key untuk Launcher
+
+```bash
+php generate_api_key.php
+```
+
+---
+
+## ⚙ Konfigurasi
+
+### Environment Variables
+
+| Variable | Deskripsi | Default |
+|----------|-----------|---------|
+| `APP_NAME` | Nama aplikasi | - |
+| `APP_ENV` | Environment (local/production) | local |
+| `APP_DEBUG` | Mode debug | true |
+| `APP_URL` | URL aplikasi | http://localhost:8000 |
+| `GAME_SERVER_NAME` | Nama game server | Testing |
+| `GAME_SERVER_IP` | IP game server | 127.0.0.1 |
+| `GAME_SERVER_PORT` | Port game server | 22100 |
+| `GAME_SERVER_DESCRIPTION` | Deskripsi server | Lorem Ipsum |
+
+---
+
+## 📁 Struktur Proyek
+
+```
+emulsis-web/
+├── app/
+│   ├── Console/
+│   │   └── Commands/
+│   │       ├── CleanupExpiredSessions.php    # Artisan command cleanup session
+│   │       └── CleanupGameServerWhitelist.php
+│   ├── Helpers/
+│   │   └── CloudflareDebug.php               # Helper debugging Cloudflare
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Api/
+│   │   │   │   └── LauncherController.php    # API untuk Rohan Launcher
+│   │   │   ├── Auth/                         # Controller autentikasi web
+│   │   │   └── Rohan/
+│   │   │       └── RohanAuthController.php   # Legacy ASP endpoints
+│   │   └── Middleware/
+│   │       ├── CloudflareDebugger.php         # Debug Cloudflare requests
+│   │       ├── DisableCloudflareCompression.php
+│   │       ├── TrustCloudflare.php            # Trust Cloudflare proxy
+│   │       └── VerifyLauncherApiKey.php       # Verifikasi API key launcher
+│   ├── Models/
+│   │   ├── Game.php                          # Model game data
+│   │   ├── Launcher/
+│   │   │   ├── GameSession.php               # Model session game
+│   │   │   ├── IpRule.php                    # Model IP whitelist/blacklist
+│   │   │   └── ServerSetting.php             # Model pengaturan server
+│   │   └── User.php
+│   ├── Services/
+│   │   └── GameServerFirewall.php            # Service firewall game server
+│   └── Utils/
+│       └── RohanLogger.php                   # Utility logging
+├── config/                                    # Konfigurasi Laravel
+├── database/
+│   └── migrations/                           # Database migrations
+├── routes/
+│   ├── api.php                               # Route API (Launcher)
+│   ├── auth.php                              # Route autentikasi
+│   └── web.php                               # Route web (RohanAuth legacy)
+├── ssl/                                       # SSL certificates
+├── storage/
+│   └── logs/                                 # Log files
+├── tests/                                     # Unit & feature tests
+├── .env.example                              # Contoh environment
+├── generate_api_key.php                      # Script generate API key
+├── check_sessions.php                        # Script cek session aktif
+└── run-scheduler.bat                         # Batch file untuk scheduler
+```
+
+---
+
+## 🔌 API Endpoints
+
+### Legacy RohanAuth (untuk RohanClient.exe)
+
+Endpoints ini kompatibel dengan game client asli Rohan.
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| GET/POST | `/RohanAuth/Login3.asp` | Login dan autentikasi |
+| GET/POST | `/RohanAuth/ServerList5.asp` | Daftar server game |
+| GET/POST | `/RohanAuth/loginremove.asp` | Disconnect/logout paksa |
+| GET/POST | `/RohanAuth/sendcode7.asp` | Kirim kode verifikasi |
+| GET/POST | `/RohanAuth/DownFlag2.asp` | Flag download client |
+
+#### Contoh Request Login
+
+```
+GET /RohanAuth/Login3.asp?nation=TN&id=username&passwd=password&ver=1.0&pcode=1
+```
+
+#### Response Login (Success)
+
+```
+{session_id}|{user_id}|{run_ver}|{grade}|0
+```
+
+#### Response Login (Error Codes)
+
+| Code | Deskripsi |
+|------|-----------|
+| -1 | Akun tidak terdaftar |
+| -2 | Password salah |
+| -10 | Sudah login |
+| -30 | Versi tidak valid |
+| -1000 | Maintenance mode |
+
+---
+
+### Launcher API (untuk Rohan Launcher)
+
+API modern dengan autentikasi API key untuk Rohan Launcher.
+
+**Base URL:** `/api/launcher/`
+
+**Header Required:**
+```
+X-Launcher-Api-Key: {your_api_key}
+```
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| POST | `/request-launch` | Minta izin launch game |
+| POST | `/heartbeat` | Keep session alive |
+| POST | `/close-session` | Tutup session game |
+| GET | `/status` | Cek status server |
+
+#### Request Launch
+
+```http
+POST /api/launcher/request-launch
+Content-Type: application/json
+X-Launcher-Api-Key: your_api_key
+
+{
+    "hwid": "hardware_id",
+    "client_hash": "hash_of_client"
+}
+```
+
+#### Response (Success)
+
+```json
+{
+    "success": true,
+    "session_id": "random_64_char_string",
+    "active_sessions": 1,
+    "max_allowed": 4,
+    "heartbeat_interval": 30
+}
+```
+
+#### Response (Max Clients)
+
+```json
+{
+    "success": false,
+    "error": "Maximum clients reached (4/4)",
+    "code": "MAX_CLIENTS_REACHED",
+    "active_sessions": 4,
+    "max_allowed": 4
+}
+```
+
+---
+
+## ✨ Fitur Utama
+
+### 1. Multi-Client Limiter
+
+Membatasi jumlah game client per IP address:
+- Default: 4 client per IP
+- Dapat dikustomisasi per IP via whitelist
+- Session timeout otomatis jika tidak ada heartbeat
+
+### 2. IP Whitelist/Blacklist
+
+```php
+// Whitelist dengan custom limit
+IpRule::create([
+    'ip_address' => '192.168.1.100',
+    'type' => 'whitelist',
+    'max_clients' => 8,
+    'reason' => 'VIP User'
+]);
+
+// Blacklist
+IpRule::create([
+    'ip_address' => '10.0.0.50',
+    'type' => 'blacklist',
+    'reason' => 'Suspicious activity'
+]);
+```
+
+### 3. Server Settings
+
+Pengaturan server dinamis via database:
+
+| Key | Deskripsi | Default |
+|-----|-----------|---------|
+| `maintenance_mode` | Mode maintenance (0/1) | 0 |
+| `max_clients_per_ip` | Max client per IP | 4 |
+| `session_timeout_seconds` | Timeout session (detik) | 60 |
+| `server_list` | Data server list | - |
+| `down_flag` | Flag download | ROHAN\|1\|1\|ROHAN\|DEFAULT |
+
+### 4. Cloudflare Integration
+
+Backend sudah terintegrasi dengan Cloudflare:
+- Trust Cloudflare proxy headers
+- Real IP detection via `CF-Connecting-IP`
+- Disable compression untuk legacy client
+- Debug middleware untuk troubleshooting
+
+### 5. Comprehensive Logging
+
+Logging terstruktur untuk debugging:
+- Request/Response logging
+- Performance timing
+- Error tracking dengan stack trace
+
+---
+
+## ⏰ Scheduler & Commands
+
+### Artisan Commands
+
+```bash
+# Cleanup session yang expired
+php artisan launcher:cleanup-sessions
+
+# Cleanup whitelist game server
+php artisan launcher:cleanup-whitelist
+```
+
+### Setup Scheduler
+
+#### Windows (Task Scheduler)
+
+1. Jalankan `run-scheduler.bat` atau buat Task Scheduler:
+
+```batch
+@echo off
+cd /d "D:\path\to\emulsis-web"
+php artisan schedule:run
+```
+
+2. Schedule task untuk berjalan setiap menit
+
+#### Linux (Cron)
+
+```bash
+* * * * * cd /path/to/emulsis-web && php artisan schedule:run >> /dev/null 2>&1
+```
+
+---
+
+## 🚀 Deployment
+
+### Development
+
+```bash
+php artisan serve --host=0.0.0.0 --port=8000
+```
+
+### Production (Laragon/Windows)
+
+1. Point document root ke folder `public/`
+2. Setup virtual host
+3. Aktifkan SSL certificate
+4. Jalankan scheduler via Task Scheduler
+
+### Production dengan Cloudflare
+
+Lihat dokumentasi tambahan:
+- [CLOUDFLARE_IMPLEMENTATION.md](./CLOUDFLARE_IMPLEMENTATION.md)
+- [CLOUDFLARE_DEBUG_GUIDE.md](./CLOUDFLARE_DEBUG_GUIDE.md)
+- [CLOUDFLARE_TROUBLESHOOTING.md](./CLOUDFLARE_TROUBLESHOOTING.md)
+
+---
+
+## 📚 Dokumentasi Tambahan
+
+| File | Deskripsi |
+|------|-----------|
+| [CLOUDFLARE_IMPLEMENTATION.md](./CLOUDFLARE_IMPLEMENTATION.md) | Panduan integrasi Cloudflare |
+| [CLOUDFLARE_DEBUG_GUIDE.md](./CLOUDFLARE_DEBUG_GUIDE.md) | Debug masalah Cloudflare |
+| [CLOUDFLARE_TROUBLESHOOTING.md](./CLOUDFLARE_TROUBLESHOOTING.md) | Troubleshooting Cloudflare |
+| [GAME_SERVER_PROTECTION.md](./GAME_SERVER_PROTECTION.md) | Proteksi game server dari DDoS |
+| [LOGOUT_DETECTION.md](./LOGOUT_DETECTION.md) | Deteksi logout player |
+| [SCHEDULER_SETUP.md](./SCHEDULER_SETUP.md) | Setup scheduler Windows/Linux |
+
+---
+
+## 🔧 Troubleshooting
+
+### Error: SQL Server Connection Failed
+
+```
+Pastikan:
+1. SQL Server service berjalan
+2. TCP/IP enabled di SQL Server Configuration
+3. Port 1433 tidak diblokir firewall
+4. Credentials di .env benar
+```
+
+### Error: Login Returns -1
+
+```
+Cek:
+1. Parameter request lengkap (nation, id, passwd, pcode)
+2. Stored procedure ROHAN4_Login tersedia
+3. Database RohanUser accessible
+```
+
+### Error: Launcher API 401 Unauthorized
+
+```
+Pastikan:
+1. Header X-Launcher-Api-Key dikirim
+2. API key valid dan tersimpan di database
+3. Middleware launcher.api terdaftar
+```
+
+---
+
+## 📄 License
+
+Proyek ini bersifat private untuk penggunaan internal Emulsis Realm.
+
+---
+
+*Dokumentasi terakhir diperbarui: 23 Januari 2026*
