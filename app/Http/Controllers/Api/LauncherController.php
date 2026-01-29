@@ -44,6 +44,15 @@ class LauncherController extends Controller
             ], 403);
         }
 
+        // HWID validation (prevent device abuse)
+        if (!empty($hwid) && !$this->validateHWID($hwid, $ip)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Too many devices from this IP address',
+                'code' => 'HWID_LIMIT_EXCEEDED'
+            ], 403);
+        }
+
         // Get max clients for this IP
         $maxClients = $this->getMaxClientsForIP($ip);
 
@@ -200,6 +209,49 @@ class LauncherController extends Controller
         GameSession::active()
             ->where('last_heartbeat', '<', now()->subSeconds($timeout))
             ->update(['status' => 'closed']);
+    }
+
+    /**
+     * Validate HWID to prevent device abuse
+     * Limits number of unique devices per IP address
+     */
+    private function validateHWID(string $hwid, string $ip): bool
+    {
+        // Get max HWIDs per IP from settings (default: 3)
+        $maxHwidsPerIP = (int) ServerSetting::getValue('max_hwids_per_ip', 3);
+
+        // Check if this specific HWID already exists for this IP
+        $hwidExists = GameSession::where('ip_address', $ip)
+            ->where('hwid', $hwid)
+            ->where('launched_at', '>', now()->subHours(24))
+            ->exists();
+
+        // If HWID already registered, allow it
+        if ($hwidExists) {
+            return true;
+        }
+
+        // Count unique HWIDs for this IP in last 24 hours
+        $uniqueHwids = GameSession::where('ip_address', $ip)
+            ->where('launched_at', '>', now()->subHours(24))
+            ->distinct()
+            ->pluck('hwid')
+            ->filter() // Remove nulls
+            ->count();
+
+        // Allow if we haven't reached the limit
+        $allowed = $uniqueHwids < $maxHwidsPerIP;
+
+        if (!$allowed) {
+            \Log::warning('HWID limit exceeded', [
+                'ip' => $ip,
+                'hwid' => substr($hwid, 0, 8) . '...',
+                'unique_hwids' => $uniqueHwids,
+                'max_allowed' => $maxHwidsPerIP
+            ]);
+        }
+
+        return $allowed;
     }
 
     /**

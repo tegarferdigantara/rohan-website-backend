@@ -394,6 +394,7 @@ Lihat dokumentasi tambahan:
 | [CLOUDFLARE_DEBUG_GUIDE.md](./CLOUDFLARE_DEBUG_GUIDE.md) | Debug masalah Cloudflare |
 | [CLOUDFLARE_TROUBLESHOOTING.md](./CLOUDFLARE_TROUBLESHOOTING.md) | Troubleshooting Cloudflare |
 | [GAME_SERVER_PROTECTION.md](./GAME_SERVER_PROTECTION.md) | Proteksi game server dari DDoS |
+| [HWID_VALIDATION.md](./HWID_VALIDATION.md) | Hardware ID validation untuk mencegah device abuse |
 | [IP_WHITELIST_SETUP.md](./IP_WHITELIST_SETUP.md) | Setup IP Whitelist (Linux + Windows) |
 | [LOGOUT_DETECTION.md](./LOGOUT_DETECTION.md) | Deteksi logout player |
 | [SCHEDULER_SETUP.md](./SCHEDULER_SETUP.md) | Setup scheduler Windows/Linux |
